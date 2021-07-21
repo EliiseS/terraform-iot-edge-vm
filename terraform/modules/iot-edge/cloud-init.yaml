@@ -42,6 +42,34 @@ runcmd:
       sudo ln -s /dev/null /etc/systemd/system/iotedge.service
       apt install iotedge
       sed -i "s#\(device_connection_string: \).*#\1\"<REPLACE_WITH_CONNECTION_STRING>\"#g" /etc/iotedge/config.yaml 
+
+      # Check if a NVIDIA GPU is installed.
+      lspci -vnnn | grep NVIDIA
+      HAS_GPU=$?
+      if [ $HAS_GPU -eq 0 ]; then
+        # Add CUDA driver repo's
+        CUDA_REPO_PKG=cuda-repo-ubuntu1804_10.2.89-1_amd64.deb
+        wget -O /tmp/$${CUDA_REPO_PKG} https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/$${CUDA_REPO_PKG}
+        sudo dpkg -i /tmp/$${CUDA_REPO_PKG}
+        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
+        rm -f /tmp/$${CUDA_REPO_PKG}
+
+        # Install CUDA drivers
+        sudo apt update
+        sudo apt install -y --no-install-recommends cuda-drivers
+
+        # Add the nvidia-docker repos
+        distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+        && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+        && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+        # Install nvidia-container-toolkit
+        sudo apt update
+        sudo apt install -y nvidia-container-toolkit
+        sudo systemctl restart docker
+      fi
+
+      # Finally start iotedge
       systemctl unmask iotedge
       systemctl start iotedge
       echo 'ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr' >> /etc/ssh/sshd_config
