@@ -1,14 +1,3 @@
-terraform {
-  required_providers {
-    shell = {
-      source  = "scottwinkler/shell"
-      version = "1.7.7"
-    }
-  }
-}
-
-provider "shell" {}
-
 resource "random_string" "vm_user_name" {
   length  = 10
   special = false
@@ -17,20 +6,6 @@ resource "random_string" "vm_user_name" {
 locals {
   dns_label_prefix = "${var.resource_prefix}-iot-edge"
   vm_user_name     = var.vm_user_name != "" ? var.vm_user_name : random_string.vm_user_name.result
-}
-
-resource "shell_script" "register_iot_edge_device" {
-  lifecycle_commands {
-    create = "$script create"
-    read   = "$script read"
-    delete = "$script delete"
-  }
-
-  environment = {
-    iot_hub_name         = var.iot_hub_name
-    iot_edge_device_name = "${var.resource_prefix}-edge-device"
-    script               = "../../scripts/terraform/register_iot_edge_device.sh"
-  }
 }
 
 ### Create Virtual IoT Edge Device ###
@@ -94,7 +69,7 @@ resource "tls_private_key" "vm_ssh" {
 
 resource "local_file" "ssh" {
   content         = tls_private_key.vm_ssh.private_key_pem
-  filename        = "../../.ssh/id_rsa"
+  filename        = "../.ssh/id_rsa"
   file_permission = "600"
 }
 
@@ -115,7 +90,7 @@ resource "azurerm_linux_virtual_machine" "iot_edge" {
   network_interface_ids = [
     azurerm_network_interface.iot_edge.id
   ]
-  custom_data = base64encode(replace(file("${path.module}/cloud-init.yaml"), "<REPLACE_WITH_CONNECTION_STRING>", shell_script.register_iot_edge_device.output["connectionString"]))
+  custom_data = base64encode(replace(file("${path.module}/cloud-init.yaml"), "<REPLACE_WITH_CONNECTION_STRING>", var.edge_device_connection_string))
 
   source_image_reference {
     offer     = "UbuntuServer"

@@ -1,5 +1,16 @@
+terraform {
+  required_providers {
+    shell = {
+      source  = "scottwinkler/shell"
+      version = "1.7.7"
+    }
+  }
+}
 
-resource "azurerm_iothub" "rg" {
+provider "shell" {}
+
+
+resource "azurerm_iothub" "iot_hub" {
   name                          = "${var.resource_prefix}-iot-hub"
   resource_group_name           = var.resource_group_name
   location                      = var.location
@@ -20,5 +31,20 @@ resource "azurerm_iothub" "rg" {
 
   tags = {
     purpose = "testing"
+  }
+}
+
+resource "shell_script" "register_iot_edge_device" {
+  lifecycle_commands {
+    create = "$SCRIPT create"
+    read   = "$SCRIPT read"
+    delete = "$SCRIPT delete"
+  }
+
+  environment = {
+    IOT_HUB_NAME         = azurerm_iothub.iot_hub.name
+    RESOURCE_GROUP       = azurerm_iothub.iot_hub.resource_group_name
+    IOT_EDGE_DEVICE_NAME = "${var.resource_prefix}-edge-device"
+    SCRIPT               = "../scripts/terraform/register_iot_edge_device.sh"
   }
 }

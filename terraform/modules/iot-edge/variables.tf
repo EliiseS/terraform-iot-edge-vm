@@ -17,3 +17,7 @@ variable "location" {
 variable "vm_user_name" {
   type = string
 }
+
+variable "edge_device_connection_string" {
+  type = string
+}
