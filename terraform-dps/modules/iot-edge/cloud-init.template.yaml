@@ -1,0 +1,136 @@
+#cloud-config
+
+apt:
+  preserve_sources_list: true
+  sources:
+    msft.list:
+      source: 'deb https://packages.microsoft.com/ubuntu/18.04/multiarch/prod bionic main'
+      key: |
+        -----BEGIN PGP PUBLIC KEY BLOCK-----
+        Version: GnuPG v1.4.7 (GNU/Linux)
+
+        mQENBFYxWIwBCADAKoZhZlJxGNGWzqV+1OG1xiQeoowKhssGAKvd+buXCGISZJwT
+        LXZqIcIiLP7pqdcZWtE9bSc7yBY2MalDp9Liu0KekywQ6VVX1T72NPf5Ev6x6DLV
+        7aVWsCzUAF+eb7DC9fPuFLEdxmOEYoPjzrQ7cCnSV4JQxAqhU4T6OjbvRazGl3ag
+        OeizPXmRljMtUUttHQZnRhtlzkmwIrUivbfFPD+fEoHJ1+uIdfOzZX8/oKHKLe2j
+        H632kvsNzJFlROVvGLYAk2WRcLu+RjjggixhwiB+Mu/A8Tf4V6b+YppS44q8EvVr
+        M+QvY7LNSOffSO6Slsy9oisGTdfE39nC7pVRABEBAAG0N01pY3Jvc29mdCAoUmVs
+        ZWFzZSBzaWduaW5nKSA8Z3Bnc2VjdXJpdHlAbWljcm9zb2Z0LmNvbT6JATUEEwEC
+        AB8FAlYxWIwCGwMGCwkIBwMCBBUCCAMDFgIBAh4BAheAAAoJEOs+lK2+EinPGpsH
+        /32vKy29Hg51H9dfFJMx0/a/F+5vKeCeVqimvyTM04C+XENNuSbYZ3eRPHGHFLqe
+        MNGxsfb7C7ZxEeW7J/vSzRgHxm7ZvESisUYRFq2sgkJ+HFERNrqfci45bdhmrUsy
+        7SWw9ybxdFOkuQoyKD3tBmiGfONQMlBaOMWdAsic965rvJsd5zYaZZFI1UwTkFXV
+        KJt3bp3Ngn1vEYXwijGTa+FXz6GLHueJwF0I7ug34DgUkAFvAs8Hacr2DRYxL5RJ
+        XdNgj4Jd2/g6T9InmWT0hASljur+dJnzNiNCkbn9KbX7J/qK1IbR8y560yRmFsU+
+        NdCFTW7wY0Fb1fWJ+/KTsC4=
+        =J6gs
+        -----END PGP PUBLIC KEY BLOCK-----
+packages:
+  - moby-cli
+  - libiothsm-std
+  - moby-engine
+write_files:
+  - path: /var/iot-certs/iot-edge-device-identity-full-chain.cert.pem
+    permissions: '0444'
+    owner: root:root
+    content: "${IDENTITY_CERTIFICATE}"
+  - path: /var/iot-certs/iot-edge-device-identity.key.pem
+    permissions: '0400'
+    owner: root:root
+    content: "${IDENTITY_CERTIFICATE_KEY}"
+  - path: /var/iot-certs/iot-edge-device-ca-full-chain.cert.pem
+    permissions: '0444'
+    owner: root:root
+    content: "${CA_CERTIFICATE}"
+  - path: /var/iot-certs/iot-edge-device-ca.key.pem
+    permissions: '0400'
+    owner: root:root
+    content: "${CA_CERTIFICATE_KEY}"
+  - path: /var/iot-certs/iot-edge-root-ca.cert.pem
+    permissions: '0444'
+    owner: root:root
+    content: "${ROOT_CA_CERTIFICATE}"
+  - path: /etc/iotedge/config.yaml
+    permissions: '0444'
+    owner: root:root
+    content: |
+      # DPS X.509 provisioning configuration
+      provisioning:
+        source: "dps"
+        global_endpoint: "https://global.azure-devices-provisioning.net"
+        scope_id: "${SCOPE_ID}"
+        attestation:
+          method: "x509"
+          registration_id: "${REGISTRATION_ID}"
+          identity_cert: "file:///var/iot-certs/iot-edge-device-identity-full-chain.cert.pem"
+          identity_pk: "file:///var/iot-certs/iot-edge-device-identity.key.pem"
+        always_reprovision_on_startup: true
+        dynamic_reprovisioning: false
+      certificates:
+        device_ca_cert: "file:///var/iot-certs/iot-edge-device-ca-full-chain.cert.pem"
+        device_ca_pk: "file:///var/iot-certs/iot-edge-device-ca.key.pem"
+        trusted_ca_certs: "file:///var/iot-certs/iot-edge-root-ca.cert.pem"
+      #  auto_generated_ca_lifetime_days: 90
+      agent:
+        name: "edgeAgent"
+        type: "docker"
+        env: {}
+        config:
+          image: "mcr.microsoft.com/azureiotedge-agent:1.1"
+          auth: {}
+      hostname: "${HOSTNAME}"
+      connect:
+        management_uri: "unix:///var/run/iotedge/mgmt.sock"
+        workload_uri: "unix:///var/run/iotedge/workload.sock"
+      listen:
+        management_uri: "fd://iotedge.mgmt.socket"
+        workload_uri: "fd://iotedge.socket"
+      homedir: "/var/lib/iotedge"
+      moby_runtime:
+        uri: "unix:///var/run/docker.sock"
+runcmd:
+  - |
+    set -x
+    (
+      # Wait for docker daemon to start
+      while [ $(ps -ef | grep -v grep | grep docker | wc -l) -le 0 ]; do 
+        sleep 3
+      done
+
+      # Prevent iotedge from starting before the certificate file owner is set
+      sudo ln -s /dev/null /etc/systemd/system/iotedge.service
+      apt install iotedge
+      chown -R iotedge: /var/iot-certs
+      chown -R iotedge: /etc/iotedge
+      systemctl unmask iotedge
+      systemctl start iotedge
+      echo 'ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com,aes256-ctr,aes192-ctr,aes128-ctr' >> /etc/ssh/sshd_config
+
+      # Check if a NVIDIA GPU is installed.
+      lspci -vnnn | grep NVIDIA
+      HAS_GPU=$?
+      if [ $HAS_GPU -eq 0 ]; then
+        # Add CUDA driver repo's
+        CUDA_REPO_PKG=cuda-repo-ubuntu1804_10.2.89-1_amd64.deb
+        wget -O /tmp/$${CUDA_REPO_PKG} https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/$${CUDA_REPO_PKG}
+        sudo dpkg -i /tmp/$${CUDA_REPO_PKG}
+        sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub 
+        rm -f /tmp/$${CUDA_REPO_PKG}
+
+        # Install CUDA drivers
+        sudo apt update
+        sudo apt install  -y --no-install-recommends --assume-yes cuda-drivers
+
+        # Add the nvidia-docker repos
+        distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+        && curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+        && curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+        # We need to install nvidia-docker2 but for some reason, the dependency resolution in regards to moby-engine is broken.
+        # Due to that we need to manually download and install the packages.
+        sudo apt update
+        sudo apt download libnvidia-container-tools libnvidia-container1 nvidia-container-runtime nvidia-container-toolkit nvidia-docker2
+        sudo dpkg --ignore-depends=docker-ce -i libnvidia-container1* libnvidia-container-tools* nvidia-container-toolkit* nvidia-container-runtime* nvidia-docker2*
+        sudo systemctl restart docker
+      fi
+    ) &

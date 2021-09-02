@@ -1,3 +1,7 @@
+### Project
+
+.ssh
+
 ### Terraform ###
 # Local .terraform directories
 **/.terraform/*
@@ -28,4 +32,15 @@ override.tf.json
 # Include tfplan files to ignore the plan output of command: terraform plan -out=tfplan
 # example: *tfplan*
 
+# Ignore .terraform.lock.hcl
+.terraform.lock.hcl
+
 # End of https://www.gitignore.io/api/terraform
+
+# Ignore the certificate directory
+certs/*/certs
+certs/*/csr
+certs/*/newcerts
+certs/*/private
+certs/*/index*
+certs/*/serial*

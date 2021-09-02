@@ -20,7 +20,7 @@ locals {
 }
 
 resource "azurerm_resource_group" "rg" {
-  name     = "${local.resource_prefix}-rg-development"
+  name     = "${local.resource_prefix}-rg-iotedge"
   location = var.resource_group_location
 }
 
