@@ -11,7 +11,7 @@ set -euo pipefail
 # Hostname as returned by `hostname` command on device to be
 # configured as IoT Edge device.
 device_id=${IOT_EDGE_DEVICE_NAME}
-certgen_path=../../certs
+certgen_path=../certs
 cert_root=${certgen_path}/gen
 
 ###############################################################################

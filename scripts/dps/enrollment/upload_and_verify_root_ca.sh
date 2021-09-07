@@ -23,7 +23,7 @@ az configure -d group="${RESOURCE_GROUP_NAME}" location="${RESOURCE_GROUP_LOCATI
 dps_root_ca_path=${cert_root}/certs/azure-iot-test-only.root.ca.cert.pem
 
 # Upload root certificate to DPS.
-# az iot dps certificate create -n "${DPS_ROOT_CA_NAME}" --dps-name "${DPS_NAME}" -p "${dps_root_ca_path}"
+az iot dps certificate create -n "${DPS_ROOT_CA_NAME}" --dps-name "${DPS_NAME}" -p "${dps_root_ca_path}"
 
 # Create verification code, which is used complete the proof of possession step for
 # a certificate.  Use this verification code as the CN of a new certificate signed

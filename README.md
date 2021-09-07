@@ -17,8 +17,6 @@ Terraform template to provision an IoT Edge enabled virtual machine, IoT Hub, Io
 
 ## Deploy IoTEdge and DPS with terraform
 
-> Warning, the terraform apply currently fails due to a bug in the certificate creation. I'm hoping to fix this as soon as I have the time
-
 1. Create Root & Intermediary certificates
 
     Create root and intermediary certificates for device provisioning service and IoT Edge:
@@ -27,7 +25,7 @@ Terraform template to provision an IoT Edge enabled virtual machine, IoT Hub, Io
     make dps-cert-gen
     ```
 
-    The certificates will be created within the `certs/local-development/certs` directory.
+    The certificates will be created within the [`certs/gen/certs`]([certs/gen/certs) directory. More information of how certificates are generated can be found in the [certificate README](certs/README.md).
 
 2. [Authenticate to Azure with Terraform Azure Provider](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs#authenticating-to-azure)
 3. Login to Azure CLI
