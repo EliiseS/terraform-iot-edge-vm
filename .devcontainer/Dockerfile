@@ -51,3 +51,13 @@ RUN apt-get update && \
     apt-get autoremove -y && \
     apt-get clean -y && \
     rm -rf /var/lib/apt/lists/*
+
+# Customize bash
+RUN \
+    # Git command prompt
+    git clone https://github.com/magicmonty/bash-git-prompt.git ~/.bash-git-prompt --depth=1 && \
+    echo "if [ -f \"$HOME/.bash-git-prompt/gitprompt.sh\" ]; then GIT_PROMPT_ONLY_IN_REPO=1 && source $HOME/.bash-git-prompt/gitprompt.sh; fi" >> "/root/.bashrc" && \
+    # Install bash completion
+    apt-get update && \
+    apt-get -y install bash-completion && \
+    echo "source /usr/share/bash-completion/bash_completion" >> ~/.bashrc 
