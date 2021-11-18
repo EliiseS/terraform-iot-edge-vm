@@ -1,6 +1,3 @@
-# SPDX-License-Identifier: MIT
-# Copyright Contributors to the Open Manufacturing Platform
-#
 # See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/dotnetcore/.devcontainer/base.Dockerfile
 
 # Dependencies versions
