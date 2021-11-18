@@ -21,10 +21,8 @@ resource "azurerm_iothub" "iot_hub" {
     capacity = "1"
   }
 
-  route {
-    name           = "defaultroute"
+  fallback_route {
     source         = "DeviceMessages"
-    condition      = "true"
     endpoint_names = ["events"]
     enabled        = true
   }
