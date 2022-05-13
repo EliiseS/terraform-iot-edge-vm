@@ -1,5 +1,3 @@
-# See here for image contents: https://github.com/microsoft/vscode-dev-containers/tree/v0.140.1/containers/dotnetcore/.devcontainer/base.Dockerfile
-
 # Dependencies versions
 ARG PYTHON_VERSION="3.7.10"
 
