@@ -2,12 +2,10 @@ terraform {
   required_providers {
     shell = {
       source  = "scottwinkler/shell"
-      version = "1.7.7"
+      version = "1.7.10"
     }
   }
 }
-
-provider "shell" {}
 
 resource "random_string" "vm_user_name" {
   length  = 10
@@ -80,9 +78,9 @@ resource "tls_private_key" "vm_ssh" {
 }
 
 resource "local_file" "ssh" {
-  sensitive_content = tls_private_key.vm_ssh.private_key_pem
-  filename          = "../.ssh/id_rsa"
-  file_permission   = "600"
+  content         = tls_private_key.vm_ssh.private_key_pem
+  filename        = "../.ssh/id_rsa"
+  file_permission = "600"
 }
 
 resource "shell_script" "create_iot_edge_config" {
