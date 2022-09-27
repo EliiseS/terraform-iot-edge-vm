@@ -15,6 +15,11 @@ Terraform template to provision an IoT Edge enabled virtual machine, IoT Hub, Io
     apply terraform
     ```
 
+> **NOTE**: in case there are errors when executing the `scripts/terraform/register_iot_edge_device.sh`
+> script, ensure the correct line endings (`LF`) are used, depending on the environment.
+> To learn more about how to configure line endings for your repository, check
+> [GitHub Docs](https://docs.github.com/en/get-started/getting-started-with-git/configuring-git-to-handle-line-endings).
+
 ## Deploy IoTEdge and DPS with terraform
 
 1. Create Root & Intermediary certificates
