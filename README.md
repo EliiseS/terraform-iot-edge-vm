@@ -2,7 +2,7 @@
 
 ## Terraform template to deploy IoT Edge enabled VM
 
-Terraform template to provision an IoT Edge enabled virtual machine, IoT Hub, IoT Hub device on Azure. Iot Edge VM deployment is based on the ARM varient found at https://aka.ms/iotedge-vm-deploy and https://github.com/Azure/iotedge-vm-deploy.
+Terraform template to provision an IoT Edge enabled virtual machine, IoT Hub, IoT Hub device on Azure. Iot Edge VM deployment is based on the ARM variant found at <https://aka.ms/iotedge-vm-deploy> and <https://github.com/Azure/iotedge-vm-deploy>.
 
 ## Deploy IoTEdge with terraform
 
@@ -14,6 +14,11 @@ Terraform template to provision an IoT Edge enabled virtual machine, IoT Hub, Io
     cd terraform/
     apply terraform
     ```
+
+> **NOTE**: in case there are errors when executing the `scripts/terraform/register_iot_edge_device.sh`
+> script, ensure the correct line endings (`LF`) are used, depending on the environment.
+> To learn more about how to configure line endings for your repository, check
+> [GitHub Docs](https://docs.github.com/en/get-started/getting-started-with-git/configuring-git-to-handle-line-endings).
 
 ## Deploy IoTEdge and DPS with terraform
 
